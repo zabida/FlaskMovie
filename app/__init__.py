@@ -1,12 +1,14 @@
+import configparser
+import os
+import socket
+
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-import os
 
 app = Flask(__name__)  # 创建app对象
 app.debug = True  # 开启调试模式
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@127.0.0.1:3306/movie"  # 定义数据库连接，传入连接，默认端口3306，可不写
-import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = sock.connect_ex(('127.0.0.1', 3306))
@@ -15,14 +17,15 @@ if result == 0:
     use_ip_port = '127.0.0.1:3306'
 else:
     # 家里的虚拟机环境连接到宿主机的127.0.0.1
-    use_ip_port = '192.168.66.99:3306'
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://root:root@{}/movie".format(use_ip_port)
-
-import configparser
+    use_ip_port = '172.16.60.164:3306'
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:12345678@{}/movie?charset=utf8mb4".format(use_ip_port)
 
 config = configparser.ConfigParser()
-config.read(r'C:\ProjectConfig.ini')
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqlconnector://{user}:{password}@{host}:{port}/{db_name}".format(
+config_path = os.path.join(os.path.dirname(__file__), '../ProjectConfig.ini')
+print(11, config_path)
+config.read(config_path)
+print(1, config.sections())
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}".format(
     user=config['mysql-flaskmovie']['user'],
     password=config['mysql-flaskmovie']['password'],
     host=config['mysql-flaskmovie']['host'],
@@ -38,6 +41,7 @@ app.config['USER_IMAGE'] = os.path.join(os.path.abspath(os.path.dirname(__file__
 
 # 配置redis
 from flask_redis import FlaskRedis
+
 app.config["REDIS_URL"] = 'redis://:{password}@{host}:{port}/1'.format(
     host=config['redis-djangostarmeow']['host'],
     port=config['redis-djangostarmeow']['port'],
